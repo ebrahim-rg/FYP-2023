@@ -64,10 +64,10 @@ class _MyHomePageState extends State<MyHomePage> {
           'Authorization': 'Bearer $bearerToken',
         },
       );
-      String msg = '';
+      bool msg;
       Map<String, dynamic> data = jsonDecode(response.body);
-      msg = data['message'];
-      if (msg == "signout successful") {
+      msg = data['success'];
+      if (msg == true) {
         print(msg);
         Navigator.pushReplacement(
           context,
@@ -91,8 +91,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void clearSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String isFirstTimeKey = 'isFirstTime';
+
+    // Get all the keys in SharedPreferences
+    Set<String> keys = prefs.getKeys();
+
+    // Loop through the keys and remove any that don't match isFirstTimeKey
+    for (String key in keys) {
+      if (key != isFirstTimeKey) {
+        await prefs.remove(key);
+      }
+    }
   }
 
   @override
@@ -124,262 +134,272 @@ class _MyHomePageState extends State<MyHomePage> {
 
 //     print(_username);
 
-    return isLoading ? Center(child: CircularProgressIndicator(color: Colors.yellow,)): FutureBuilder<String>(
-        future: getUsernameById(widget.userid),
-        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
-            } else {
-              return SafeArea(
-                child: Scaffold(
-                  backgroundColor: Colors.black,
-                  appBar: AppBar(
-                    backgroundColor: Colors.black,
-                    title: Text(widget.title,
-                        style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 30)),
-                    leading: Builder(
-                      builder: (BuildContext context) => IconButton(
-                        icon: Icon(Icons.menu),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                      ),
-                    ),
-                  ),
-                  drawer: Drawer(
-                    child: Container(
-                      color: Colors.black,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: ListView(
-                          padding: EdgeInsets.only(left: 16.0),
-                          children: <Widget>[
-                            Container(
-                              height: 80,
-                              child: DrawerHeader(
-                                margin: EdgeInsets.zero,
-                                child: Text('',
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 34.0,
-                                        color: Colors.white)),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                            DrawerItem(
-                                title: 'Profile',
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditProfileScreen(
-                                                username: snapshot.data!,
-                                                userid: widget.userid,
-                                              ))).then((_) {
-                                    setState(() {});
-                                  });
-                                }),
-                            DrawerItem(
-                                title: 'Day Settings',
-                                onTap: () {
-                                  setState(() {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                WeekScreen()));
-                                  });
-                                  //Navigator.pop(context);
-                                }),
-                            DrawerItem(title: 'Requests', onTap: () {}),
-                            DrawerItem(title: 'Settings', onTap: () {}),
-                            DrawerItem(title: 'Help', onTap: () {}),
-                            DrawerItem(
-                                title: 'Logout',
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        content: Text(
-                                            "Are you sure you want to log out?"),
-                                        actions: [
-                                          TextButton(
-                                            child: Text('Yes',
-                                                style: TextStyle(
-                                                    color: Colors.blue)),
-                                            onPressed: () {
-                                              clearSharedPreferences();
-                                              Navigator.pop(context);
-                                              _signOut(widget.token);
-                                            },
-                                          ),
-                                          TextButton(
-                                            child: Text('No',
-                                                style: TextStyle(
-                                                    color: Colors.red)),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }),
-                          ],
+    return isLoading
+        ? Center(
+            child: CircularProgressIndicator(
+            color: Colors.yellow,
+          ))
+        : FutureBuilder<String>(
+            future: getUsernameById(widget.userid),
+            builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                } else {
+                  return SafeArea(
+                    child: Scaffold(
+                      backgroundColor: Colors.black,
+                      appBar: AppBar(
+                        backgroundColor: Colors.black,
+                        title: Text(widget.title,
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 30)),
+                        leading: Builder(
+                          builder: (BuildContext context) => IconButton(
+                            icon: Icon(Icons.menu),
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  body: WillPopScope(
-                    onWillPop: onWillPop,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        color: Colors.black,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Divider(
-                              height: 25,
-                              color: Colors.yellow,
-                              thickness: 8,
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      drawer: Drawer(
+                        child: Container(
+                          color: Colors.black,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: ListView(
+                              padding: EdgeInsets.only(left: 16.0),
                               children: <Widget>[
-                                _buildDayCircle('M'),
-                                _buildDayCircle('T'),
-                                _buildDayCircle('W'),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: <Widget>[
-                                _buildDayCircle('T'),
-                                _buildDayCircle('F'),
-                                _buildDayCircle('S'),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Divider(
-                              height: 25,
-                              color: Colors.yellow,
-                              thickness: 8,
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            getTodayDay() + '\'s Rides',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20),
-                                          ),
-                                          Text(
-                                            getFormattedDate(),
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20),
-                                          ),
-                                        ],
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context)=> CollapsibleListScreen()));
-                                          // Navigator.push(
-                                          //         context,
-                                          //         MaterialPageRoute(
-                                          //             builder: (context) =>
-                                          //                 EditProfileScreen(
-                                          //                     username: snapshot
-                                          //                         .data!,
-                                          //                     userid: widget
-                                          //                         .userid)))
-                                          //     .then((_) {
-                                          //   setState(() {});
-                                            
-                                          
-                                          // Navigator.push(
-                                          //     context,
-                                          //     MaterialPageRoute(
-                                          //         builder: (context) =>
-                                          //             CollapsibleListScreen()));
-                                        },
-                                        child: Text("All Rides",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 16)),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  //height: 270,
-
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      children: [
-                                        _buildRow(),
-                                        _buildRow(),
-                                        _buildRow(),
-                                        _buildRow()
-                                      ],
+                                Container(
+                                  height: 80,
+                                  child: DrawerHeader(
+                                    margin: EdgeInsets.zero,
+                                    child: Text('',
+                                        style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 34.0,
+                                            color: Colors.white)),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
                                     ),
                                   ),
                                 ),
-
-                                //_buildRow(),
+                                DrawerItem(
+                                    title: 'Profile',
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditProfileScreen(
+                                                    username: snapshot.data!,
+                                                    userid: widget.userid,
+                                                  ))).then((_) {
+                                        setState(() {});
+                                      });
+                                    }),
+                                DrawerItem(
+                                    title: 'Day Settings',
+                                    onTap: () {
+                                      setState(() {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    WeekScreen(userid:widget.userid)));
+                                      });
+                                      //Navigator.pop(context);
+                                    }),
+                                DrawerItem(title: 'Requests', onTap: () {}),
+                                DrawerItem(title: 'Settings', onTap: () {}),
+                                DrawerItem(title: 'Help', onTap: () {}),
+                                DrawerItem(
+                                    title: 'Logout',
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            content: Text(
+                                                "Are you sure you want to log out?"),
+                                            actions: [
+                                              TextButton(
+                                                child: Text('Yes',
+                                                    style: TextStyle(
+                                                        color: Colors.blue)),
+                                                onPressed: () {
+                                                  clearSharedPreferences();
+                                                  Navigator.pop(context);
+                                                  _signOut(widget.token);
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text('No',
+                                                    style: TextStyle(
+                                                        color: Colors.red)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }),
                               ],
                             ),
-                          ],
+                          ),
+                        ),
+                      ),
+                      body: WillPopScope(
+                        onWillPop: onWillPop,
+                        child: SingleChildScrollView(
+                          child: Container(
+                            color: Colors.black,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Divider(
+                                  height: 25,
+                                  color: Colors.yellow,
+                                  thickness: 8,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: <Widget>[
+                                    _buildDayCircle('M'),
+                                    _buildDayCircle('T'),
+                                    _buildDayCircle('W'),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: <Widget>[
+                                    _buildDayCircle('T'),
+                                    _buildDayCircle('F'),
+                                    _buildDayCircle('S'),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Divider(
+                                  height: 25,
+                                  color: Colors.yellow,
+                                  thickness: 8,
+                                ),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                getTodayDay() + '\'s Rides',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20),
+                                              ),
+                                              Text(
+                                                getFormattedDate(),
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20),
+                                              ),
+                                            ],
+                                          ),
+                                          InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          CollapsibleListScreen()));
+                                              // Navigator.push(
+                                              //         context,
+                                              //         MaterialPageRoute(
+                                              //             builder: (context) =>
+                                              //                 EditProfileScreen(
+                                              //                     username: snapshot
+                                              //                         .data!,
+                                              //                     userid: widget
+                                              //                         .userid)))
+                                              //     .then((_) {
+                                              //   setState(() {});
+
+                                              // Navigator.push(
+                                              //     context,
+                                              //     MaterialPageRoute(
+                                              //         builder: (context) =>
+                                              //             CollapsibleListScreen()));
+                                            },
+                                            child: Text("All Rides",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16)),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Flexible(
+                                      fit: FlexFit.loose,
+                                      //height: 270,
+
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          children: [
+                                            _buildRow(),
+                                            _buildRow(),
+                                            _buildRow(),
+                                            _buildRow()
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+
+                                    //_buildRow(),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
+                  );
+                }
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.yellow,
                   ),
-                ),
-              );
-            }
-          } else {
-            return Center(
-              child: CircularProgressIndicator(
-                color: Colors.yellow,
-              ),
-            );
-          }
-        });
+                );
+              }
+            });
   }
 }
 

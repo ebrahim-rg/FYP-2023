@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fyp/daysettings_screen.dart';
 import 'package:fyp/widgets/textfield.dart';
 import 'package:http/http.dart';
 
@@ -21,7 +22,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  
   bool isLoading = false;
   bool isLogged = false;
   bool isChecked = false;
@@ -32,6 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController password = TextEditingController();
   bool validateUsername = true;
   bool validatePassword = true;
+  bool isFirstTime = true;
   //final formKey = GlobalKey<FormState>();
 
   Future<void> updateAuthState(bool isSignedIn) async {
@@ -49,11 +50,25 @@ class _LoginPageState extends State<LoginPage> {
     prefs.setString('token', token);
   }
 
+  Future<void> updateisFirstTime(bool flag) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isFirstTime', flag);
+  }
+
+  void _checkIfFirstTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
+    setState(() {
+      this.isFirstTime = isFirstTime;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     email;
     password;
+    _checkIfFirstTime();
   }
 
   @override
@@ -81,7 +96,9 @@ class _LoginPageState extends State<LoginPage> {
         Map<String, dynamic> data = jsonDecode(response.body);
         msg = data['message'];
         token = data['token'];
+        //print(token);
         userid = data["userid"];
+        print(token);
         print(userid);
       } else {
         Map<String, dynamic> data = jsonDecode(response.body);
@@ -117,12 +134,21 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.pop(context);
                       // Navigate to the next page
 
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MyHomePage(
-                                title: "Home", userid: userid, token: token)),
-                      );
+                      if (isFirstTime) {
+                        updateisFirstTime(false);
+                        //await prefs.setBool('isFirstTime', false); // Set the value of isFirstTime to false in SharedPreferences
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => WeekScreen(userid:userid)),
+                        );
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MyHomePage(
+                                  title: "Home", userid: userid, token: token)),
+                        );
+                      }
                     } else {
                       Navigator.of(context).pop();
                     }
@@ -308,7 +334,6 @@ class _LoginPageState extends State<LoginPage> {
                               });
                             }
                           },
-                       
                           color1: Colors.yellow,
                           color2: Colors.black,
                         ),
@@ -324,17 +349,17 @@ class _LoginPageState extends State<LoginPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               poppinsText(
-                              text: 'Don\'t have an account? ',
-                              size: 14.0,
-                              fontBold: FontWeight.w500,
-                              color: Colors.white,
-                            ),
+                                text: 'Don\'t have an account? ',
+                                size: 14.0,
+                                fontBold: FontWeight.w500,
+                                color: Colors.white,
+                              ),
                               poppinsText(
-                              text: 'Sign Up ',
-                              size: 14.0,
-                              fontBold: FontWeight.bold,
-                              color: Colors.yellow,
-                            ),
+                                text: 'Sign Up ',
+                                size: 14.0,
+                                fontBold: FontWeight.bold,
+                                color: Colors.yellow,
+                              ),
                             ],
                           ),
                         ),

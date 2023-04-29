@@ -4,6 +4,8 @@ import 'package:fyp/widgets/daytogglerow.dart';
 
 class WeekScreen extends StatefulWidget {
   //final String dayOfWeek;
+  WeekScreen({required this.userid});
+  String userid;
 
   //WeekScreen({Key key, this.dayOfWeek}) : super(key: key);
 
@@ -21,43 +23,43 @@ class _WeekScreenState extends State<WeekScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Monday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Monday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Tuesday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Tuesday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Wednesday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Wednesday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Thursday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Thursday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Friday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Friday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Saturday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Saturday',userid: widget.userid,)));
       },
       () {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => DayTimings(dayOfWeek: 'Sunday')));
+                builder: (context) => DayTimings(dayOfWeek: 'Sunday',userid: widget.userid,)));
       },
     ];
   }
