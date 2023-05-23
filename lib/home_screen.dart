@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp/allrides_screen.dart';
 import 'package:fyp/editprofile_screen.dart';
+import 'package:fyp/route_screen.dart';
+import 'package:fyp/widgets/daycircle.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'daysettings_screen.dart';
@@ -11,6 +13,8 @@ import 'signin_screen.dart';
 import 'widgets/drawer_item.dart';
 import 'widgets/my_drawer.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({required this.token, required this.title, required this.userid})
@@ -27,6 +31,52 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Future<String>? _username;
   bool isLoading = false;
+  bool isMonday = false;
+  bool isTuesday = false;
+  bool isWednesday = false;
+  bool isThursday = false;
+  bool isFriday = false;
+  bool isSaturday = false;
+
+  Future<void> _getCurrentLocation() async {
+    // Check if location services are enabled
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services are disabled.');
+      return;
+    }
+
+    // Check location permission status
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print(
+          'Location permissions are permanently denied, we cannot request permissions.');
+      return;
+    }
+
+    // Get the current position
+    final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    // Post the location data to the API endpoint
+    final url =
+        Uri.parse('https://routify.cyclic.app/api/${widget.userid}/location');
+    final response = await http.post(url, body: {
+      'latitude': position.latitude.toString(),
+      'longitude': position.longitude.toString(),
+    });
+
+    if (response.statusCode == 200) {
+      print('Location posted successfully');
+      print('API Response: ${response.body}');
+    } else {
+      print('Failed to post location: ${response.statusCode}');
+    }
+  }
 
   Future<String> getUsernameById(String id) async {
     Response response =
@@ -42,8 +92,33 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     if (matchingObject != null) {
       String username = matchingObject['username'];
+      var schedule = matchingObject['schedule'];
+
+      for (final schedule in matchingObject['schedule']) {
+        if (schedule['day'] == 'Monday') {
+          isMonday = true;
+        } else if (schedule['day'] == 'Tuesday') {
+          isTuesday = true;
+        } else if (schedule['day'] == 'Wednesday') {
+          isWednesday = true;
+        } else if (schedule['day'] == 'Thursday') {
+          isThursday = true;
+        } else if (schedule['day'] == 'Friday') {
+          isFriday = true;
+        } else if (schedule['day'] == 'Saturday') {
+          isSaturday = true;
+        }
+      }
+
       //_username = username;
       print(username);
+      //print(schedule);
+      print(isMonday);
+      print(isTuesday);
+      print(isWednesday);
+      print(isThursday);
+      print(isFriday);
+      print(isSaturday);
       return username;
       //print(username);
     }
@@ -111,6 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
     print("hello");
     // setState(() {
     _username = getUsernameById(widget.userid);
+    //_getCurrentLocation();
     //print(_username);
 
     print(_username);
@@ -207,10 +283,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                     onTap: () {
                                       setState(() {
                                         Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    WeekScreen(userid:widget.userid)));
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        WeekScreen(
+                                                            userid:
+                                                                widget.userid)))
+                                            .then((_) {
+                                          setState(() {});
+                                        });
                                       });
                                       //Navigator.pop(context);
                                     }),
@@ -262,6 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Container(
                             color: Colors.black,
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
                                 Divider(
@@ -276,9 +358,69 @@ class _MyHomePageState extends State<MyHomePage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: <Widget>[
-                                    _buildDayCircle('M'),
-                                    _buildDayCircle('T'),
-                                    _buildDayCircle('W'),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isMonday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Monday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isMonday,
+                                      letter: "M",
+                                      userid: widget.userid,
+                                      day: "Monday",
+                                    ),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isTuesday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Tuesday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isTuesday,
+                                      letter: "T",
+                                      userid: widget.userid,
+                                      day: "Tuesday",
+                                    ),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isWednesday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Wednesday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isWednesday,
+                                      letter: "W",
+                                      userid: widget.userid,
+                                      day: "Wednesday",
+                                    ),
                                   ],
                                 ),
                                 SizedBox(
@@ -288,9 +430,69 @@ class _MyHomePageState extends State<MyHomePage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: <Widget>[
-                                    _buildDayCircle('T'),
-                                    _buildDayCircle('F'),
-                                    _buildDayCircle('S'),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isThursday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Thursday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isThursday,
+                                      letter: "T",
+                                      userid: widget.userid,
+                                      day: "Thursday",
+                                    ),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isFriday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Friday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isFriday,
+                                      letter: "F",
+                                      userid: widget.userid,
+                                      day: "Friday",
+                                    ),
+                                    DayCircle(
+                                      onTap: () {
+                                        if (isSaturday) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => MyMapScreen(
+                                                userid: widget.userid,
+                                                day: "Saturday",
+                                              ),
+                                            ),
+                                          ).then((_) {
+                                            setState(() {});
+                                          });
+                                        }
+                                      },
+                                      isDay: isSaturday,
+                                      letter: "S",
+                                      userid: widget.userid,
+                                      day: "Saturday",
+                                    ),
                                   ],
                                 ),
                                 SizedBox(
@@ -403,21 +605,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Widget _buildDayCircle(String day) {
+Widget _buildDayCircle(BuildContext context, bool isDay, String letter,
+    String userid, String day) {
   return InkWell(
+    onTap: () {
+      if (isDay) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyMapScreen(userid: userid, day: day),
+          ),
+        ); // Move this line outside the `then` function
+      }
+    },
     child: Container(
       width: 90.0,
       height: 90.0,
       decoration: BoxDecoration(
-        color: Colors.yellow,
+        color: isDay ? Colors.yellow : Colors.deepOrange,
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Text(day,
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 40,
-                fontWeight: FontWeight.bold)),
+        child: Text(
+          letter,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     ),
   );

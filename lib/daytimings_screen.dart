@@ -3,45 +3,40 @@ import 'package:http/http.dart';
 
 class DayTimings extends StatefulWidget {
   final String dayOfWeek;
-  String userid;
+  final String userid;
 
-  DayTimings({required this.dayOfWeek, required this.userid});
+  DayTimings({
+    required this.dayOfWeek,
+    required this.userid,
+  });
 
   @override
   _DayTimingsState createState() => _DayTimingsState();
 }
 
 class _DayTimingsState extends State<DayTimings> {
-  Future<void> updateSchedule(
-    //String userId,
-    //String day,
-    String startTime,
-    String endTime,
-    String startCampus,
-    String endCampus,
-    String role,
-    //BuildContext context,
-  ) async {
-    final url = Uri.parse(
-        'https://routify.cyclic.app/api/users/shedule/${widget.userid}/${widget.dayOfWeek}');
-    //final headers = {'Content-Type': 'application/json'};
-    final body = ({
-      'start_time': startTime,
-      'end_time': endTime,
-      'start_campus': startCampus,
-      'end_campus': endCampus,
-      'role': role,
-    });
+  String _startTime = 'First Slot';
+  String _endTime = 'First Slot';
+  String _startLocation = 'main';
+  String _endLocation = 'main';
+  String _role = 'passenger';
 
+  Future<void> _saveSchedule() async {
     try {
+      final url = Uri.parse(
+          'https://routify.cyclic.app/api/users/shedule/${widget.userid}/${widget.dayOfWeek}');
+      final body = {
+        'start_time': _startTime,
+        'end_time': _endTime,
+        'start_campus': _startLocation,
+        'end_campus': _endLocation,
+        'role': _role,
+      };
       final response = await put(url, body: body);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Padding(
-              padding: const EdgeInsets.only(bottom: 30.0),
-              child: Text('Day updated successfully'),
-            ),
+            content: Text('Schedule updated successfully.'),
           ),
         );
       } else {
@@ -52,313 +47,366 @@ class _DayTimingsState extends State<DayTimings> {
     }
   }
 
-  void setDay(String day, String startTime, String endTime, String startCampus,
-      String endCampus, String role) async {
-    Response response = await post(
-      Uri.parse(
-          'https://routify.cyclic.app/api/users/${widget.userid}/schedule'),
-      body: {
-        "day": day,
-        "start_time": startTime,
-        "end_time": endTime,
-        "start_campus": startCampus,
-        "end_campus": endCampus,
-        "role": role,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Day set successfully'),
-        ),
-      );
-    } else {
-      throw Exception('Failed to set day');
+  Future<void> _setSchedule() async {
+    try {
+      final url = Uri.parse(
+          'https://routify.cyclic.app/api/users/${widget.userid}/schedule');
+      final body = {
+        'day': widget.dayOfWeek,
+        'start_time': _startTime,
+        'end_time': _endTime,
+        'start_campus': _startLocation,
+        'end_campus': _endLocation,
+        'role': _role,
+      };
+      final response = await post(url, body: body);
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Schedule set successfully.'),
+          ),
+        );
+      } else {
+        throw Exception('Failed to set schedule.');
+      }
+    } catch (e) {
+      print('Error setting schedule: $e');
     }
   }
-
-  String startTime = "First Slot";
-  String endTime = "First Slot";
-  String _firstSlot = 'main';
-  String _lastSlot = 'main';
-  bool isDriverSelected = false;
-  String role = "passenger";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
-          widget.dayOfWeek,
+          widget.dayOfWeek.toUpperCase(),
           style: TextStyle(
-              fontFamily: 'Poppins', fontSize: 30, color: Colors.white),
+            fontFamily: 'Poppins',
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
-      body: Column(
-        children: [
-          Divider(
-            color: Colors.yellow,
-            thickness: 8,
-          ),
-          SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.yellow,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        bottomLeft: Radius.circular(8),
-                      ),
-                    ),
-                    padding: EdgeInsets.all(8),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      dropdownColor: Colors.yellow,
-                      value: startTime,
-                      onChanged: (String? newValue) {
-                        print(_firstSlot);
-                        print(_lastSlot);
-                        print(startTime);
-                        print(endTime);
-                        print(role);
-                        setState(() {
-                          startTime = newValue!;
-                        });
-                        // TODO: Implement onChanged callback
-                      },
-                      items: <String>[
-                        'First Slot',
-                        'Second Slot',
-                        'Third Slot',
-                        'Fourth Slot',
-                        'Fifth Slot',
-                        'Sixth Slot',
-                      ].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(0),
-                        bottomRight: Radius.circular(0),
-                      ),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: _firstSlot,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _firstSlot = newValue!;
-                        });
-                      },
-                      items: <String>['main', 'city'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value,
-                              style: TextStyle(color: Colors.black)),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.yellow,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        bottomLeft: Radius.circular(8),
-                      ),
-                    ),
-                    padding: EdgeInsets.all(8),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      dropdownColor: Colors.yellow,
-                      value: endTime,
-                      onChanged: (String? newValue) {
-                        // TODO: Implement onChanged callback
-                        setState(() {
-                          endTime = newValue!;
-                        });
-                      },
-                      items: <String>[
-                        'First Slot',
-                        'Second Slot',
-                        'Third Slot',
-                        'Fourth Slot',
-                        'Fifth Slot',
-                        'Sixth Slot',
-                      ].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(0),
-                        bottomRight: Radius.circular(0),
-                      ),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: _lastSlot,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _lastSlot = newValue!;
-                        });
-                      },
-                      items: <String>['main', 'city'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value,
-                              style: TextStyle(color: Colors.black)),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          Spacer(),
-
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isDriverSelected = false;
-                      role = 'passenger';
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDriverSelected ? Colors.black : Colors.yellow,
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                  ),
-                  child: Text(
-                    'Passenger',
-                    style: TextStyle(
-                      color: isDriverSelected ? Colors.yellow : Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isDriverSelected = true;
-                      role = 'driver';
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDriverSelected ? Colors.yellow : Colors.black,
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                  ),
-                  child: Text(
-                    'Driver',
-                    style: TextStyle(
-                      color: isDriverSelected ? Colors.black : Colors.yellow,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  setDay(widget.dayOfWeek, startTime, endTime, _firstSlot,
-                      _lastSlot, role);
-                }); // TODO: Implement onPressed callback
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                minimumSize: Size(double.infinity, 48.0),
-              ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Save',
+                'START',
                 style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
                 ),
               ),
             ),
-          ),
-
-          // Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          //   ElevatedButton(
-          //       onPressed: null,
-          //       style:
-          //           ElevatedButton.styleFrom(backgroundColor: Colors.black),
-          //       child: Text('Passenger',
-          //           style: TextStyle(color: Colors.yellow))),
-          //   SizedBox(width: 8),
-          //   ElevatedButton(
-          //       onPressed: null,
-          //       style:
-          //           ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-          //       child: Text('Driver', style: TextStyle(color: Colors.yellow))),
-          // ])
-        ],
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _startTime,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _startTime = value!;
+                          });
+                        },
+                        items: [
+                          'First Slot',
+                          'Second Slot',
+                          'Third Slot',
+                          'Fourth Slot',
+                          'Fifth Slot',
+                          'Sixth Slot',
+                        ].map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _startLocation,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _startLocation = value!;
+                          });
+                        },
+                        items: [
+                          'main',
+                          'city',
+                        ].map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'END',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _endTime,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _endTime = value!;
+                          });
+                        },
+                        items: [
+                          'First Slot',
+                          'Second Slot',
+                          'Third Slot',
+                          'Fourth Slot',
+                          'Fifth Slot',
+                          'Sixth Slot',
+                        ].map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _endLocation,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _endLocation = value!;
+                          });
+                        },
+                        items: [
+                          'main',
+                          'city',
+                        ].map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'ROLE',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _role,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _role = value!;
+                          });
+                        },
+                        items: [
+                          'passenger',
+                          'driver',
+                        ].map<DropdownMenuItem<String>>((value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ElevatedButton(
+                onPressed: _saveSchedule,
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'UPDATE SCHEDULE',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: OutlinedButton(
+                onPressed: _setSchedule,
+                style: OutlinedButton.styleFrom(
+                  primary: Colors.black,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'SET SCHEDULE',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

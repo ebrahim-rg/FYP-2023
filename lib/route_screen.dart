@@ -1,37 +1,429 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart';
+import 'package:url_launcher/url_launcher.dart';
+import "dart:ui" as ui;
 
-class RouteScreen extends StatefulWidget {
+import 'package:url_launcher/url_launcher_string.dart';
+
+class MyMapScreen extends StatefulWidget {
+  MyMapScreen({
+    this.userid,
+    this.day,
+  });
+  String? userid;
+  String? day;
   @override
-  _RouteScreenState createState() => _RouteScreenState();
+  _MyMapScreenState createState() => _MyMapScreenState();
 }
 
-class _RouteScreenState extends State<RouteScreen> {
-  GoogleMapController? mapController;
-
-  final LatLng _initialCameraPosition = LatLng(37.77483, -122.419416);
-
-  Set<Marker> _markers = {};
+class _MyMapScreenState extends State<MyMapScreen> {
+  late GoogleMapController mapController;
+  List<Marker> _markers = [];
+  Set<Polyline> _polylines = {};
+  String hi = "original";
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+  }
 
-    setState(() {
-      _markers.add(
-        Marker(
-          markerId: MarkerId("marker_1"),
-          position: LatLng(37.77483, -122.419416),
-          infoWindow: InfoWindow(title: "Marker 1"),
-        ),
-      );
-      _markers.add(
-        Marker(
-          markerId: MarkerId("marker_2"),
-          position: LatLng(37.77493, -122.419516),
-          infoWindow: InfoWindow(title: "Marker 2"),
-        ),
-      );
-    });
+  Future<Set<Polyline>> _getPolylines(String startLat, String startLng,
+      String endLat, String endLng, List<Color> colors) async {
+    final apiKey = 'AIzaSyDvGu0s5AniaCriuxDEYyHA53KqUdNOSbI';
+    final url = 'https://maps.googleapis.com/maps/api/directions/json'
+        '?origin=$startLat,$startLng'
+        '&destination=$endLat,$endLng'
+        '&mode=driving'
+        '&alternatives=true'
+        '&key=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      List<dynamic> routes = decoded['routes'];
+      Set<Polyline> polylines = {};
+      for (int i = 0; i < routes.length; i++) {
+        final points =
+            _decodePolyline(routes[i]['overview_polyline']['points']);
+        final polyline = Polyline(
+          polylineId: PolylineId('route$i'),
+          points: points,
+          color: colors[i % colors.length],
+          width: 5,
+        );
+        polylines.add(polyline);
+      }
+      return polylines;
+    } else {
+      throw Exception('Failed to fetch polylines');
+    }
+  }
+
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> points = [];
+
+    int index = 0;
+    int lat = 0, lng = 0;
+
+    while (index < encoded.length) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dLat = ((result & 1) == 1 ? ~(result >> 1) : (result >> 1));
+      lat += dLat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dLng = ((result & 1) == 1 ? ~(result >> 1) : (result >> 1));
+      lng += dLng;
+
+      points.add(LatLng((lat / 1E5), (lng / 1E5)));
+    }
+    return points;
+  }
+
+  var lat;
+  var lng;
+  var destlat;
+  var destlng;
+  String? role;
+  String? start_campus;
+
+  Future<void> getLocation(String id) async {
+    Response response =
+        await get(Uri.parse('https://routify.cyclic.app/api/allusers'));
+    final List<dynamic> responseData = json.decode(response.body);
+
+    Map<String, dynamic>? matchingObject;
+    for (var i = 0; i < responseData.length; i++) {
+      if (responseData[i]['_id'] == id) {
+        matchingObject = responseData[i];
+        break;
+      }
+    }
+    if (matchingObject != null) {
+      //String username = matchingObject['username'];
+      //var schedule = matchingObject['schedule'];
+      var location = matchingObject['location'][0];
+      lat = location['latitude'];
+      lng = location['longitude'];
+
+      for (final schedule in matchingObject['schedule']) {
+        if (schedule['day'] == widget.day) {
+          role = schedule['role']!;
+          start_campus = schedule['start_campus']!;
+          print(role);
+          print(start_campus);
+          if (start_campus == 'main') {
+            destlat = "24.9419";
+            destlng = "67.1143";
+          }
+
+          break;
+        }
+      }
+
+      // //_username = username;
+      // print(username);
+      // //print(schedule);
+      // print(isMonday);
+      // print(isTuesday);
+      // print(isWednesday);
+      // print(isThursday);
+      // print(isFriday);
+      // print(isSaturday);
+      // return username;
+      // //print(username);
+    }
+    //return "username";
+  }
+
+  Uint8List? markerImage;
+
+  Future<Uint8List> getByteFromAssets(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetHeight: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
+  }
+
+  Future<void> _fetchDatagoing() async {
+    final Uint8List avatarIcon =
+        await getByteFromAssets("assets/images/avatar.png", 45);
+    final Uint8List carIcon =
+        await getByteFromAssets("assets/images/car.png", 45);
+
+    final response = await http.get(Uri.parse(
+        'https://routify.cyclic.app/api/matches/${widget.userid}/${widget.day}'));
+
+    if (response.statusCode == 200) {
+      print(response.body);
+
+      //print(data["filtered_users"].length);
+      if (response.body == "no one is available") {
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No matches available. Sorry!'),
+            ),
+          );
+        });
+      } else {
+        final data = jsonDecode(response.body);
+        print(data);
+
+        //lat = data['filtered_users'][0]['location'][0]["latitude"];
+        //lng = data['filtered_users'][0]['location'][0]["longitude"];
+        print(lat);
+        print(lng);
+        print(role);
+        print(start_campus);
+        List<Marker> markers = [];
+        // print(lat);
+        // print(lng);
+
+        for (var user in data['filtered_users']) {
+          final location = user['location'][0];
+          final marker = Marker(
+            icon: role == 'driver'
+                ? BitmapDescriptor.fromBytes(carIcon)
+                : BitmapDescriptor.fromBytes(avatarIcon),
+            markerId: MarkerId(user['username']),
+            position: LatLng(
+              double.parse(location['latitude']),
+              double.parse(location['longitude']),
+            ),
+            infoWindow: InfoWindow(
+              title: user['username'],
+              snippet: 'ERP: ${user['erp']} Email: ${user['email']}',
+              // Customized InfoWindow
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(user['username']),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('ERP: ${user['erp']}',
+                            style: TextStyle(color: Colors.blue)),
+                        SizedBox(height: 4),
+                        Text('Email: ${user['email']}',
+                            style: TextStyle(color: Colors.blue)),
+                        SizedBox(height: 8),
+                        Text('Location:', style: TextStyle(color: Colors.grey)),
+                        Text(
+                          '${location['latitude']}, ${location['longitude']}',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Close'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Open WhatsApp with the user's number
+                          launch('https://wa.me/${user['whatsappNumber']}');
+                        },
+                        child: Text('WhatsApp'),
+                        style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.green,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Send a request
+                          //sendRequest();
+                        },
+                        child: Text('Send Request'),
+                        style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+          markers.add(marker);
+          role = "passenger";
+        }
+
+        final polyline = await _getPolylines(lat, lng, destlat, destlng,
+            [Colors.blue, Colors.green, Colors.purple]);
+        print(polyline);
+        setState(() {
+          _polylines = polyline;
+          print(polyline);
+        });
+
+        setState(() {
+          _markers = markers;
+        });
+      }
+      //throw Exception('Failed to load data');
+    }
+  }
+
+  Future<void> _fetchDatacoming() async {
+    final Uint8List avatarIcon =
+        await getByteFromAssets("assets/images/avatar.png", 45);
+    final Uint8List carIcon =
+        await getByteFromAssets("assets/images/car.png", 45);
+
+    final response = await http.get(Uri.parse(
+        'https://routify.cyclic.app/api/matches/${widget.userid}/${widget.day}'));
+
+    if (response.statusCode == 200) {
+      print(response.body);
+
+      //print(data["filtered_users"].length);
+      if (response.body == "no one is available") {
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No matches available. Sorry!'),
+            ),
+          );
+        });
+      } else {
+        final data = jsonDecode(response.body);
+        print(data);
+
+        //lat = data['filtered_users'][0]['location'][0]["latitude"];
+        //lng = data['filtered_users'][0]['location'][0]["longitude"];
+        print(lat);
+        print(lng);
+        print(role);
+        print(start_campus);
+        List<Marker> markers = [];
+        // print(lat);
+        // print(lng);
+
+        for (var user in data['filtered_users']) {
+          final location = user['location'][0];
+          final marker = Marker(
+            icon: role == 'driver'
+                ? BitmapDescriptor.fromBytes(carIcon)
+                : BitmapDescriptor.fromBytes(avatarIcon),
+            markerId: MarkerId(user['username']),
+            position: LatLng(
+              double.parse(location['latitude']),
+              double.parse(location['longitude']),
+            ),
+            infoWindow: InfoWindow(
+              title: user['username'],
+              snippet: 'ERP: ${user['erp']} Email: ${user['email']}',
+              // Customized InfoWindow
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(user['username']),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('ERP: ${user['erp']}',
+                            style: TextStyle(color: Colors.blue)),
+                        SizedBox(height: 4),
+                        Text('Email: ${user['email']}',
+                            style: TextStyle(color: Colors.blue)),
+                        SizedBox(height: 8),
+                        Text('Location:', style: TextStyle(color: Colors.grey)),
+                        Text(
+                          '${location['latitude']}, ${location['longitude']}',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Close'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Open WhatsApp with the user's number
+                          launch('https://wa.me/${user['whatsappNumber']}');
+                        },
+                        child: Text('WhatsApp'),
+                        style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.green,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Send a request
+                          //sendRequest();
+                        },
+                        child: Text('Send Request'),
+                        style: TextButton.styleFrom(
+                          primary: Colors.white,
+                          backgroundColor: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+          markers.add(marker);
+          role = "passenger";
+        }
+
+        final polyline = await _getPolylines(lat, lng, destlat, destlng,
+            [Colors.blue, Colors.green, Colors.purple]);
+        print(polyline);
+        setState(() {
+          _polylines = polyline;
+          print(polyline);
+        });
+
+        setState(() {
+          _markers = markers;
+        });
+      }
+      //throw Exception('Failed to load data');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print("hello");
+    getLocation(widget.userid!);
+    // setState(() {
+    //_username = getUsernameById(widget.userid);
+    //_getCurrentLocation();
+    //print(_username);
+
+    //print(_username);
+    // });
   }
 
   @override
@@ -39,65 +431,97 @@ class _RouteScreenState extends State<RouteScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(
-          'Route',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
         backgroundColor: Colors.black,
+        title: Text(widget.day!,
+            style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 30)),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Container(
-                  //height: 30.0,
-                  color: Colors.yellow,
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_back),
-                    color: Colors.black,
-                    iconSize: 24.0,
-                  ),
-                ),
-                Container(
-                 // height: 30.0,
-                  color: Colors.yellow,
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_forward),
-                    color: Colors.black,
-                    iconSize: 24.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
           Divider(
+            height: 25,
             color: Colors.yellow,
-            thickness: 2.0,
+            thickness: 8,
           ),
-          SizedBox(
-            height: 300,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _initialCameraPosition,
-                zoom: 14.0,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  _fetchDatagoing();
+                  hi = "changed";
+                  setState(() {}); // Handle going to uni button press
+                },
+                icon: Icon(Icons.arrow_forward, color: Colors.black),
+                label: Text(
+                  'Going to Uni',
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.yellow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                ),
               ),
-              markers: _markers,
-              onMapCreated: _onMapCreated,
+              SizedBox(width: 16.0),
+              ElevatedButton.icon(
+                onPressed: () {
+                  _fetchDatacoming();
+                  hi = "changed";
+                  setState(() {});
+                  // Handle going home button press
+                },
+                icon: Icon(Icons.arrow_back, color: Colors.black),
+                label: Text(
+                  'Going Home',
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.yellow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(24.9150, 67.0893), // Karachi, Pakistan
+                    zoom: 11.0,
+                  ),
+                  markers: Set<Marker>.of(_markers),
+                  polylines: _polylines),
             ),
           ),
         ],
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _fetchData();
+      //     hi = "changed";
+      //     setState(() {});
+      //   },
+      //   child: const Icon(Icons.refresh),
+      // ),
     );
   }
 }

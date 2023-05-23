@@ -19,7 +19,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   bool isLoading = false;
-  
+
   //String msg = "";
   String otp = '';
 
@@ -27,8 +27,9 @@ class _SignUpState extends State<SignUp> {
   final erp = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
+  final contact = TextEditingController();
 
-  void _showResponse(username, email, password, erp) async {
+  void _showResponse(username, email, password, erp,contact) async {
     setState(() {
       isLoading = true;
     });
@@ -39,7 +40,8 @@ class _SignUpState extends State<SignUp> {
         "username": username,
         "email": email,
         "password": password,
-        "erp": erp
+        "erp": erp,
+        "contact":contact
       });
       String msg = '';
       Map<String, dynamic> data = jsonDecode(response.body);
@@ -51,7 +53,7 @@ class _SignUpState extends State<SignUp> {
           return AlertDialog(
             backgroundColor: Colors.black,
             content: Text(
-              msg ,
+              msg,
               style: TextStyle(
                 color: Colors.yellow,
                 fontWeight: FontWeight.bold,
@@ -113,13 +115,14 @@ class _SignUpState extends State<SignUp> {
     username.dispose();
   }
 
-  Future<String> signup(String username, email, password, erp) async {
+  Future<String> signup(String username, email, password, erp, contact) async {
     Response response =
         await post(Uri.parse('https://routify.cyclic.app/api/signup'), body: {
       "username": username,
       "email": email,
       "password": password,
-      "erp": erp
+      "erp": erp,
+      "contact": contact
     });
     if (response.statusCode == 201) {
       return response.body;
@@ -197,6 +200,18 @@ class _SignUpState extends State<SignUp> {
                       const SizedBox(height: 20),
 
                       CustomTextfield(
+                          hintText: 'Contact no.',
+                          sufix: const SizedBox(),
+                          errorText: 'Contact cannot be empty',
+                          textFieldController: contact,
+                          obscureText: false,
+                          prefix: Icon(
+                            Icons.email,
+                            color: Colors.yellow,
+                          )),
+                      const SizedBox(height: 15),
+
+                      CustomTextfield(
                           hintText: 'ERP',
                           sufix: const SizedBox(),
                           errorText: 'ERP cannot be empty',
@@ -217,9 +232,9 @@ class _SignUpState extends State<SignUp> {
                               username.text.toString(),
                               email.text.toString(),
                               password.text.toString(),
-                              erp.text.toString());
+                              erp.text.toString(),
+                              contact.text.toString());
                         }),
-                       
                         color1: Colors.yellow,
                         color2: Colors.black,
                       ),
@@ -249,12 +264,12 @@ class _SignUpState extends State<SignUp> {
                       // ),
                       //const SizedBox(height: 20),
 
-
                       // Already have an account
                       InkWell(
                         onTap: () {
-                          Navigator.of(context).pushReplacement(MaterialPageRoute(
-                              builder: (context) => LoginPage()));
+                          Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                  builder: (context) => LoginPage()));
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
