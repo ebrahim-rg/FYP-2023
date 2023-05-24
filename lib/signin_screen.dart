@@ -134,21 +134,12 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.pop(context);
                       // Navigate to the next page
 
-                      if (isFirstTime) {
-                        updateisFirstTime(false);
-                        //await prefs.setBool('isFirstTime', false); // Set the value of isFirstTime to false in SharedPreferences
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => WeekScreen(userid:userid)),
-                        );
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MyHomePage(
-                                  title: "Home", userid: userid, token: token)),
-                        );
-                      }
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyHomePage(
+                                title: "Home", userid: userid, token: token)),
+                      );
                     } else {
                       Navigator.of(context).pop();
                     }

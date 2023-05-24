@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import "dart:ui" as ui;
 
 import 'package:url_launcher/url_launcher_string.dart';
@@ -26,6 +27,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
   List<Marker> _markers = [];
   Set<Polyline> _polylines = {};
   String hi = "original";
+  String status = "going";
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -129,6 +131,10 @@ class _MyMapScreenState extends State<MyMapScreen> {
           if (start_campus == 'main') {
             destlat = "24.9419";
             destlng = "67.1143";
+          } else {
+            destlat = "24.870296184680107";
+            destlng = "67.02545990441794";
+            
           }
 
           break;
@@ -162,6 +168,31 @@ class _MyMapScreenState extends State<MyMapScreen> {
         .asUint8List();
   }
 
+  Future<void> sendRequest(BuildContext context, String s) async {
+    print(status);
+    final url = Uri.parse(
+        'https://routify.cyclic.app/api/request$status/${widget.userid}/${widget.day}');
+
+    try {
+      final response = await http.post(
+        url,
+        body: {
+          's_userid': s,
+        },
+      );
+      print('hi');
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(msg: 'Request sent');
+        Navigator.of(context).pop();
+        //Navigator.of(context).pop();
+      } else {
+        print('POST request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred during POST request: $e');
+    }
+  }
+
   Future<void> _fetchDatagoing() async {
     final Uint8List avatarIcon =
         await getByteFromAssets("assets/images/avatar.png", 45);
@@ -169,7 +200,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
         await getByteFromAssets("assets/images/car.png", 45);
 
     final response = await http.get(Uri.parse(
-        'https://routify.cyclic.app/api/matches/${widget.userid}/${widget.day}'));
+        'https://routify.cyclic.app/api/matches_uni/${widget.userid}/${widget.day}'));
 
     if (response.statusCode == 200) {
       print(response.body);
@@ -198,6 +229,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
         // print(lng);
 
         for (var user in data['filtered_users']) {
+          print(user["_id"]);
           final location = user['location'][0];
           final marker = Marker(
             icon: role == 'driver'
@@ -226,12 +258,12 @@ class _MyMapScreenState extends State<MyMapScreen> {
                         SizedBox(height: 4),
                         Text('Email: ${user['email']}',
                             style: TextStyle(color: Colors.blue)),
-                        SizedBox(height: 8),
-                        Text('Location:', style: TextStyle(color: Colors.grey)),
-                        Text(
-                          '${location['latitude']}, ${location['longitude']}',
-                          style: TextStyle(color: Colors.blue),
-                        ),
+                        //SizedBox(height: 8),
+                        // Text('Location:', style: TextStyle(color: Colors.grey)),
+                        // Text(
+                        //   '${location['latitude']}, ${location['longitude']}',
+                        //   style: TextStyle(color: Colors.blue),
+                        // ),
                       ],
                     ),
                     actions: [
@@ -242,7 +274,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
                       TextButton(
                         onPressed: () {
                           // Open WhatsApp with the user's number
-                          launch('https://wa.me/${user['whatsappNumber']}');
+                          launch('https://wa.me/${user['contact']}');
                         },
                         child: Text('WhatsApp'),
                         style: TextButton.styleFrom(
@@ -253,7 +285,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
                       TextButton(
                         onPressed: () {
                           // Send a request
-                          //sendRequest();
+                          sendRequest(context, user["_id"]);
                         },
                         child: Text('Send Request'),
                         style: TextButton.styleFrom(
@@ -294,7 +326,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
         await getByteFromAssets("assets/images/car.png", 45);
 
     final response = await http.get(Uri.parse(
-        'https://routify.cyclic.app/api/matches/${widget.userid}/${widget.day}'));
+        'https://routify.cyclic.app/api/matches_home/${widget.userid}/${widget.day}'));
 
     if (response.statusCode == 200) {
       print(response.body);
@@ -351,12 +383,12 @@ class _MyMapScreenState extends State<MyMapScreen> {
                         SizedBox(height: 4),
                         Text('Email: ${user['email']}',
                             style: TextStyle(color: Colors.blue)),
-                        SizedBox(height: 8),
-                        Text('Location:', style: TextStyle(color: Colors.grey)),
-                        Text(
-                          '${location['latitude']}, ${location['longitude']}',
-                          style: TextStyle(color: Colors.blue),
-                        ),
+                        // SizedBox(height: 8),
+                        // Text('Location:', style: TextStyle(color: Colors.grey)),
+                        // Text(
+                        //   '${location['latitude']}, ${location['longitude']}',
+                        //   style: TextStyle(color: Colors.blue),
+                        // ),
                       ],
                     ),
                     actions: [
@@ -367,7 +399,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
                       TextButton(
                         onPressed: () {
                           // Open WhatsApp with the user's number
-                          launch('https://wa.me/${user['whatsappNumber']}');
+                          launch('https://wa.me/${user['contact']}');
                         },
                         child: Text('WhatsApp'),
                         style: TextButton.styleFrom(
@@ -378,7 +410,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
                       TextButton(
                         onPressed: () {
                           // Send a request
-                          //sendRequest();
+                          sendRequest(context, user["_id"]);
                         },
                         child: Text('Send Request'),
                         style: TextButton.styleFrom(
@@ -453,7 +485,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
               ElevatedButton.icon(
                 onPressed: () {
                   _fetchDatagoing();
-                  hi = "changed";
+                  status = "coming";
                   setState(() {}); // Handle going to uni button press
                 },
                 icon: Icon(Icons.arrow_forward, color: Colors.black),
@@ -472,11 +504,11 @@ class _MyMapScreenState extends State<MyMapScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: 16.0),
+              SizedBox(width: 10.0),
               ElevatedButton.icon(
                 onPressed: () {
                   _fetchDatacoming();
-                  hi = "changed";
+                  status = "going";
                   setState(() {});
                   // Handle going home button press
                 },

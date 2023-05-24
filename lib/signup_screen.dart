@@ -200,7 +200,7 @@ class _SignUpState extends State<SignUp> {
                       const SizedBox(height: 20),
 
                       CustomTextfield(
-                          hintText: 'Contact no.',
+                          hintText: 'Contact no. (eg. +92..)',
                           sufix: const SizedBox(),
                           errorText: 'Contact cannot be empty',
                           textFieldController: contact,

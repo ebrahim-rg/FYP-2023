@@ -357,28 +357,28 @@ class _DayTimingsState extends State<DayTimings> {
               ),
             ),
             SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ElevatedButton(
-                onPressed: _saveSchedule,
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.black,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'UPDATE SCHEDULE',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16),
+            //   child: ElevatedButton(
+            //     onPressed: _saveSchedule,
+            //     style: ElevatedButton.styleFrom(
+            //       primary: Colors.black,
+            //       padding: EdgeInsets.symmetric(vertical: 16),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //     child: Text(
+            //       'UPDATE SCHEDULE',
+            //       style: TextStyle(
+            //         fontFamily: 'Poppins',
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w600,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: OutlinedButton(

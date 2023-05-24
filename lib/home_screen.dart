@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp/allrides_screen.dart';
 import 'package:fyp/editprofile_screen.dart';
+import 'package:fyp/location.dart';
+import 'package:fyp/requests.dart';
 import 'package:fyp/route_screen.dart';
 import 'package:fyp/widgets/daycircle.dart';
 import 'package:http/http.dart';
+import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'daysettings_screen.dart';
 import 'signin_screen.dart';
@@ -30,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Future<String>? _username;
+  List<Map<String, dynamic>>? requestSentList;
+  List<Map<String, dynamic>>? schedule;
   bool isLoading = false;
   bool isMonday = false;
   bool isTuesday = false;
@@ -37,46 +42,61 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isThursday = false;
   bool isFriday = false;
   bool isSaturday = false;
+  Location location = Location();
 
-  Future<void> _getCurrentLocation() async {
-    // Check if location services are enabled
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      print('Location services are disabled.');
-      return;
-    }
-
-    // Check location permission status
-    final permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      print(
-          'Location permissions are permanently denied, we cannot request permissions.');
-      return;
-    }
-
-    // Get the current position
-    final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-
-    // Post the location data to the API endpoint
-    final url =
-        Uri.parse('https://routify.cyclic.app/api/${widget.userid}/location');
-    final response = await http.post(url, body: {
-      'latitude': position.latitude.toString(),
-      'longitude': position.longitude.toString(),
-    });
-
-    if (response.statusCode == 200) {
-      print('Location posted successfully');
-      print('API Response: ${response.body}');
-    } else {
-      print('Failed to post location: ${response.statusCode}');
+  void _requestLocationPermission() async {
+    PermissionStatus permissionStatus = await location.requestPermission();
+    if (permissionStatus == PermissionStatus.denied) {
+      // Location permission denied
+      // Handle accordingly (e.g., show an error message)
+    } else if (permissionStatus == PermissionStatus.granted) {
+      // Location permission granted
+      setState(() {
+        
+      });
+      // You can now proceed to use the location services
     }
   }
+
+  // Future<void> _getCurrentLocation() async {
+  //   // Check if location services are enabled
+  //   final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  //   if (!serviceEnabled) {
+  //     print('Location services are disabled.');
+  //     return;
+  //   }
+
+  //   // Check location permission status
+  //   final permission = await Geolocator.checkPermission();
+  //   if (permission == LocationPermission.denied) {
+  //     await Geolocator.requestPermission();
+  //   }
+
+  //   if (permission == LocationPermission.deniedForever) {
+  //     print(
+  //         'Location permissions are permanently denied, we cannot request permissions.');
+  //     return;
+  //   }
+
+  //   // Get the current position
+  //   final position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high);
+
+  //   // Post the location data to the API endpoint
+  //   final url =
+  //       Uri.parse('https://routify.cyclic.app/api/${widget.userid}/location');
+  //   final response = await http.post(url, body: {
+  //     'latitude': position.latitude.toString(),
+  //     'longitude': position.longitude.toString(),
+  //   });
+
+  //   if (response.statusCode == 200) {
+  //     print('Location posted successfully');
+  //     print('API Response: ${response.body}');
+  //   } else {
+  //     print('Failed to post location: ${response.statusCode}');
+  //   }
+  // }
 
   Future<String> getUsernameById(String id) async {
     Response response =
@@ -90,9 +110,17 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       }
     }
+
     if (matchingObject != null) {
       String username = matchingObject['username'];
-      var schedule = matchingObject['schedule'];
+      var schedule1 = matchingObject['schedule'];
+      var req_sent = schedule1[0]["request_sent"];
+      requestSentList =
+          schedule1[0]['request_sent'].cast<Map<String, dynamic>>();
+      //print(requestSentList);
+      schedule = matchingObject['schedule'].cast<Map<String, dynamic>>();
+      print(schedule);
+      print("haha");
 
       for (final schedule in matchingObject['schedule']) {
         if (schedule['day'] == 'Monday') {
@@ -188,6 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _username = getUsernameById(widget.userid);
     //_getCurrentLocation();
     //print(_username);
+    _requestLocationPermission();
 
     print(_username);
     // });
@@ -295,9 +324,29 @@ class _MyHomePageState extends State<MyHomePage> {
                                       });
                                       //Navigator.pop(context);
                                     }),
-                                DrawerItem(title: 'Requests', onTap: () {}),
+                                DrawerItem(title: 'Requests', onTap: () {Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          Requests(
+                                                            userid:
+                                                                widget.userid,
+                                                            schedule: schedule!,
+                                                          ))).then((_) {
+                                          setState(() {});
+                                        });;}),
+                                DrawerItem(title: 'Location', onTap: () {Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          LocationScreen(
+                                                            userid:
+                                                                widget.userid,
+                                                            //schedule: schedule!,
+                                                          ))).then((_) {
+                                          setState(() {});
+                                        });;}),
                                 DrawerItem(title: 'Settings', onTap: () {}),
-                                DrawerItem(title: 'Help', onTap: () {}),
                                 DrawerItem(
                                     title: 'Logout',
                                     onTap: () {
@@ -539,7 +588,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
-                                                          CollapsibleListScreen()));
+                                                          RequestsList(
+
+                                                            schedule!,
+                                                          )));
                                               // Navigator.push(
                                               //         context,
                                               //         MaterialPageRoute(
@@ -569,16 +621,51 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                     Flexible(
                                       fit: FlexFit.loose,
-                                      //height: 270,
-
                                       child: SingleChildScrollView(
                                         child: Column(
-                                          children: [
-                                            _buildRow(),
-                                            _buildRow(),
-                                            _buildRow(),
-                                            _buildRow()
-                                          ],
+                                          children:
+                                              requestSentList!.map((request) {
+                                            final username =
+                                                request['username'];
+                                            final email = request['email'];
+                                            final erp = request['erp'];
+
+                                            return Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Container(
+                                                width: double.infinity,
+                                                //margin: EdgeInsets.only(bottom: 16.0),
+                                                child: Card(
+                                                  color: Colors.yellow,
+                                                  child: ListTile(
+                                                    leading: Icon(
+                                                      Icons.people,
+                                                      size: 40.0,
+                                                      color: Colors.blue,
+                                                    ),
+                                                    title: Text(
+                                                      username,
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    subtitle: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(email),
+                                                        Text(erp),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
                                         ),
                                       ),
                                     ),

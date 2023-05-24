@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:location/location.dart';
 
 class LocationScreen extends StatefulWidget {
+  LocationScreen({required this.userid});
+
+  String userid;
+
   @override
   _LocationScreenState createState() => _LocationScreenState();
 }
@@ -14,27 +19,49 @@ class _LocationScreenState extends State<LocationScreen> {
   LatLng? _selectedLatLng;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Location Example'),
+        backgroundColor: Colors.black,
+        title: Text(
+          'Location',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 30,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Choose your home location',
+              style: TextStyle(
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            SizedBox(height: 30),
             Container(
               height: MediaQuery.of(context).size.height * 0.6,
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: LatLng(0, 0),
-                  zoom: 15,
+                  target: LatLng(24.9150, 67.0893), // Karachi, Pakistan
+                  zoom: 11.0,
                 ),
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
                 onTap: (LatLng latLng) {
-                  // This callback will be called whenever the user taps on the map
                   _showConfirmationDialog(latLng);
                 },
                 onMapCreated: (GoogleMapController controller) {
@@ -74,8 +101,7 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   Future<void> _postLocationToApi(LatLng latLng) async {
-    const url =
-        'https://routify.cyclic.app/api/644c24f83c29b04953977883/location';
+    var url = 'https://routify.cyclic.app/api/${widget.userid}/location';
     Response response = await http.post(
       Uri.parse(url),
       body: {
@@ -84,8 +110,6 @@ class _LocationScreenState extends State<LocationScreen> {
       },
     );
     if (response.statusCode == 200) {
-      //final responseData = json.decode(response.body);
-      //print(response);
       setState(() {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -93,10 +117,9 @@ class _LocationScreenState extends State<LocationScreen> {
           ),
         );
       });
-      //return response;
     } else {
       final responseData = json.decode(response.body);
-       setState(() {
+      setState(() {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['error']),
