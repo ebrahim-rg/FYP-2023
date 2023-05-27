@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp/allrides_screen.dart';
-import 'package:fyp/editprofile_screen.dart';
-import 'package:fyp/location.dart';
-import 'package:fyp/requests.dart';
-import 'package:fyp/route_screen.dart';
-import 'package:fyp/widgets/daycircle.dart';
+import 'package:Routify/allrides_screen.dart';
+import 'package:Routify/editprofile_screen.dart';
+import 'package:Routify/location.dart';
+import 'package:Routify/requests.dart';
+import 'package:Routify/route_screen.dart';
+import 'package:Routify/widgets/daycircle.dart';
 import 'package:http/http.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,9 +32,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String name = "";
   Future<String>? _username;
-  List<Map<String, dynamic>>? requestSentList;
-  List<Map<String, dynamic>>? schedule;
+  List<Map<String, dynamic>> requestSentList = [];
+  List<Map<String, dynamic>> schedule = [];
+  List<dynamic> accept_going = [];
+  List<dynamic> accept_coming = [];
+  List<dynamic> accept_all = [];
   bool isLoading = false;
   bool isMonday = false;
   bool isTuesday = false;
@@ -51,9 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Handle accordingly (e.g., show an error message)
     } else if (permissionStatus == PermissionStatus.granted) {
       // Location permission granted
-      setState(() {
-        
-      });
+      setState(() {});
       // You can now proceed to use the location services
     }
   }
@@ -98,6 +100,64 @@ class _MyHomePageState extends State<MyHomePage> {
   //   }
   // }
 
+  // Future<String> getUsernameById(String id) async {
+  //   Response response =
+  //       await get(Uri.parse('https://routify.cyclic.app/api/allusers'));
+  //   final List<dynamic> responseData = json.decode(response.body);
+
+  //   Map<String, dynamic>? matchingObject;
+  //   for (var i = 0; i < responseData.length; i++) {
+  //     if (responseData[i]['_id'] == id) {
+  //       matchingObject = responseData[i];
+  //       break;
+  //     }
+  //   }
+
+  //   if (matchingObject != null) {
+  //     String username = matchingObject['username'];
+  //     var schedule1 = matchingObject['schedule'];
+  //     if (schedule1.isEmpty) {
+  //       print("it is empty");
+  //     }
+  //     print(schedule1);
+  //     //var req_sent = schedule1[0]["request_sent"];
+  //     requestSentList =
+  //         schedule1[0]['request_sent']!.cast<Map<String, dynamic>>();
+  //     //print(requestSentList);
+  //     schedule = matchingObject['schedule'].cast<Map<String, dynamic>>()!;
+  //     print(schedule);
+  //     print("haha");
+
+  //     for (final schedule in matchingObject['schedule']) {
+  //       if (schedule['day'] == 'Monday') {
+  //         isMonday = true;
+  //       } else if (schedule['day'] == 'Tuesday') {
+  //         isTuesday = true;
+  //       } else if (schedule['day'] == 'Wednesday') {
+  //         isWednesday = true;
+  //       } else if (schedule['day'] == 'Thursday') {
+  //         isThursday = true;
+  //       } else if (schedule['day'] == 'Friday') {
+  //         isFriday = true;
+  //       } else if (schedule['day'] == 'Saturday') {
+  //         isSaturday = true;
+  //       }
+  //     }
+
+  //     //_username = username;
+  //     print(username);
+  //     //print(schedule);
+  //     print(isMonday);
+  //     print(isTuesday);
+  //     print(isWednesday);
+  //     print(isThursday);
+  //     print(isFriday);
+  //     print(isSaturday);
+  //     return username;
+  //     //print(username);
+  //   }
+  //   return "username";
+  // }
   Future<String> getUsernameById(String id) async {
     Response response =
         await get(Uri.parse('https://routify.cyclic.app/api/allusers'));
@@ -113,14 +173,46 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (matchingObject != null) {
       String username = matchingObject['username'];
+      name = matchingObject['username'];
       var schedule1 = matchingObject['schedule'];
-      var req_sent = schedule1[0]["request_sent"];
+
+      if (schedule1 == null || schedule1.isEmpty) {
+        print("Schedule is empty");
+        return username;
+      }
+
+      print("schedule not empty");
+
       requestSentList =
-          schedule1[0]['request_sent'].cast<Map<String, dynamic>>();
-      //print(requestSentList);
-      schedule = matchingObject['schedule'].cast<Map<String, dynamic>>();
-      print(schedule);
+          schedule1[0]['request_sent']!.cast<Map<String, dynamic>>();
+      schedule = matchingObject['schedule'].cast<Map<String, dynamic>>()!;
+
+      //print(schedule);
       print("haha");
+
+      //final filteredList =
+      //schedule.where((item) => item['day'] == "Monday").toList();
+      //print(filteredList);
+      print("haha");
+
+      DateTime now = DateTime.now();
+      String currentDay = DateFormat('EEEE').format(now);
+
+      if (matchingObject['schedule'].isNotEmpty) {
+        for (final schedule in matchingObject['schedule']) {
+          if (schedule['day'] == currentDay) {
+            accept_going = schedule['accept_going'];
+            (accept_going);
+            accept_coming = schedule['accept_coming'];
+            accept_all = accept_coming + accept_going;
+            //print(accept_all);
+            break;
+          } else {
+            accept_all = [];
+          }
+        }
+      }
+      print(accept_all);
 
       for (final schedule in matchingObject['schedule']) {
         if (schedule['day'] == 'Monday') {
@@ -138,18 +230,17 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
 
-      //_username = username;
       print(username);
-      //print(schedule);
       print(isMonday);
       print(isTuesday);
       print(isWednesday);
       print(isThursday);
       print(isFriday);
       print(isSaturday);
+
       return username;
-      //print(username);
     }
+
     return "username";
   }
 
@@ -281,7 +372,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   height: 80,
                                   child: DrawerHeader(
                                     margin: EdgeInsets.zero,
-                                    child: Text('',
+                                    child: Text(name,
                                         style: TextStyle(
                                             fontFamily: 'Poppins',
                                             fontWeight: FontWeight.bold,
@@ -292,6 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   ),
                                 ),
+                                Divider(color: Colors.yellow,thickness: 3,endIndent: 20,),
                                 DrawerItem(
                                     title: 'Profile',
                                     onTap: () {
@@ -324,29 +416,77 @@ class _MyHomePageState extends State<MyHomePage> {
                                       });
                                       //Navigator.pop(context);
                                     }),
-                                DrawerItem(title: 'Requests', onTap: () {Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          Requests(
-                                                            userid:
-                                                                widget.userid,
-                                                            schedule: schedule!,
-                                                          ))).then((_) {
-                                          setState(() {});
-                                        });;}),
-                                DrawerItem(title: 'Location', onTap: () {Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          LocationScreen(
-                                                            userid:
-                                                                widget.userid,
-                                                            //schedule: schedule!,
-                                                          ))).then((_) {
-                                          setState(() {});
-                                        });;}),
-                                DrawerItem(title: 'Settings', onTap: () {}),
+                                DrawerItem(
+                                    title: 'Requests',
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => Requests(
+                                                    userid: widget.userid,
+                                                    //schedule: schedule,
+                                                  ))).then((_) {
+                                        setState(() {});
+                                      });
+                                      ;
+                                    }),
+                                DrawerItem(
+                                    title: 'Location',
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  LocationScreen(
+                                                    userid: widget.userid,
+                                                    //schedule: schedule!,
+                                                  ))).then((_) {
+                                        setState(() {});
+                                      });
+                                      ;
+                                    }),
+                                DrawerItem(
+                                    title: 'Auto Routing',
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            backgroundColor: Colors.black,
+                                            title: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'This is a paid feature',
+                                                  style: TextStyle(
+                                                    color: Colors.yellow,
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SizedBox(height: 16),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    primary: Colors.yellow
+                                                        .withOpacity(1),
+                                                    onPrimary: Colors.black,
+                                                  ),
+                                                  child: Text('OK'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }),
                                 DrawerItem(
                                     title: 'Logout',
                                     onTap: () {
@@ -588,10 +728,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
-                                                          RequestsList(
-
-                                                            schedule!,
-                                                          )));
+                                                          AllRides(
+                                                              userid:
+                                                                  widget.userid
+                                                              //schedule,
+                                                              )));
                                               // Navigator.push(
                                               //         context,
                                               //         MaterialPageRoute(
@@ -610,11 +751,28 @@ class _MyHomePageState extends State<MyHomePage> {
                                               //         builder: (context) =>
                                               //             CollapsibleListScreen()));
                                             },
-                                            child: Text("All Rides",
-                                                style: TextStyle(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                  width: 1.0,
+                                                ),
+                                                borderRadius: BorderRadius.circular(
+                                                    8.0), // Adjust the radius as needed
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Text(
+                                                  "All Rides",
+                                                  style: TextStyle(
                                                     color: Colors.white,
                                                     fontWeight: FontWeight.w500,
-                                                    fontSize: 16)),
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           )
                                         ],
                                       ),
@@ -622,51 +780,72 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Flexible(
                                       fit: FlexFit.loose,
                                       child: SingleChildScrollView(
-                                        child: Column(
-                                          children:
-                                              requestSentList!.map((request) {
-                                            final username =
-                                                request['username'];
-                                            final email = request['email'];
-                                            final erp = request['erp'];
-
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Container(
-                                                width: double.infinity,
-                                                //margin: EdgeInsets.only(bottom: 16.0),
-                                                child: Card(
-                                                  color: Colors.yellow,
-                                                  child: ListTile(
-                                                    leading: Icon(
-                                                      Icons.people,
-                                                      size: 40.0,
-                                                      color: Colors.blue,
-                                                    ),
-                                                    title: Text(
-                                                      username,
-                                                      style: TextStyle(
-                                                        fontSize: 20,
+                                        child: accept_all.isEmpty
+                                            ? Column(
+                                                //mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                    height: 100,
+                                                  ),
+                                                  Text(
+                                                    "No rides for today :(",
+                                                    style: TextStyle(
+                                                        fontFamily: 'Poppins',
                                                         fontWeight:
-                                                            FontWeight.bold,
+                                                            FontWeight.w500,
+                                                        fontSize: 30,
+                                                        color: Colors.white),
+                                                  )
+                                                ],
+                                              )
+                                            : Column(
+                                                children:
+                                                    accept_all!.map((request) {
+                                                  final username =
+                                                      request['username'];
+                                                  final email =
+                                                      request['email'];
+                                                  final erp = request['erp'];
+
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      //margin: EdgeInsets.only(bottom: 16.0),
+                                                      child: Card(
+                                                        color: Colors.yellow,
+                                                        child: ListTile(
+                                                          leading: Icon(
+                                                            Icons.people,
+                                                            size: 40.0,
+                                                            color: Colors.blue,
+                                                          ),
+                                                          title: Text(
+                                                            username,
+                                                            style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                          subtitle: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(email),
+                                                              Text(erp),
+                                                            ],
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
-                                                    subtitle: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(email),
-                                                        Text(erp),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
+                                                  );
+                                                }).toList(),
                                               ),
-                                            );
-                                          }).toList(),
-                                        ),
                                       ),
                                     ),
 
@@ -709,7 +888,7 @@ Widget _buildDayCircle(BuildContext context, bool isDay, String letter,
       width: 90.0,
       height: 90.0,
       decoration: BoxDecoration(
-        color: isDay ? Colors.yellow : Colors.deepOrange,
+        color: isDay ? Colors.yellow : Colors.yellow.withOpacity(0),
         shape: BoxShape.circle,
       ),
       child: Center(

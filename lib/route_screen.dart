@@ -134,7 +134,6 @@ class _MyMapScreenState extends State<MyMapScreen> {
           } else {
             destlat = "24.870296184680107";
             destlng = "67.02545990441794";
-            
           }
 
           break;
@@ -233,7 +232,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
           final location = user['location'][0];
           final marker = Marker(
             icon: role == 'driver'
-                ? BitmapDescriptor.fromBytes(carIcon)
+                ? BitmapDescriptor.fromBytes(avatarIcon)
                 : BitmapDescriptor.fromBytes(avatarIcon),
             markerId: MarkerId(user['username']),
             position: LatLng(
@@ -258,6 +257,10 @@ class _MyMapScreenState extends State<MyMapScreen> {
                         SizedBox(height: 4),
                         Text('Email: ${user['email']}',
                             style: TextStyle(color: Colors.blue)),
+                        SizedBox(height: 4,),
+                        Text('${user['schedule'][0]['role']}'.toUpperCase(),
+                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+
                         //SizedBox(height: 8),
                         // Text('Location:', style: TextStyle(color: Colors.grey)),
                         // Text(

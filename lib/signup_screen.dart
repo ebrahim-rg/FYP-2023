@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:fyp/home_screen.dart';
-import 'package:fyp/otp_screen.dart';
-import 'package:fyp/signin_screen.dart';
+import 'package:Routify/home_screen.dart';
+import 'package:Routify/otp_screen.dart';
+import 'package:Routify/signin_screen.dart';
 import 'package:http/http.dart';
 import 'widgets/custom_button.dart';
 import 'widgets/custom_textfield.dart';

@@ -77,7 +77,7 @@ class _DayTimingsState extends State<DayTimings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
@@ -93,6 +93,7 @@ class _DayTimingsState extends State<DayTimings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Divider(color: Colors.yellow,thickness: 8,),
             SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -102,7 +103,7 @@ class _DayTimingsState extends State<DayTimings> {
                   fontFamily: 'Poppins',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+                  color: Colors.yellow,
                 ),
               ),
             ),
@@ -118,13 +119,13 @@ class _DayTimingsState extends State<DayTimings> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.yellow,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButton<String>(
                         value: _startTime,
                         isExpanded: true,
-                        dropdownColor: Colors.white,
+                        dropdownColor: Colors.yellow,
                         onChanged: (value) {
                           setState(() {
                             _startTime = value!;
@@ -161,13 +162,13 @@ class _DayTimingsState extends State<DayTimings> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.yellow,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButton<String>(
                         value: _startLocation,
                         isExpanded: true,
-                        dropdownColor: Colors.white,
+                        dropdownColor: Colors.yellow,
                         onChanged: (value) {
                           setState(() {
                             _startLocation = value!;
@@ -204,7 +205,7 @@ class _DayTimingsState extends State<DayTimings> {
                   fontFamily: 'Poppins',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+                  color: Colors.yellow,
                 ),
               ),
             ),
@@ -220,13 +221,13 @@ class _DayTimingsState extends State<DayTimings> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.yellow,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButton<String>(
                         value: _endTime,
                         isExpanded: true,
-                        dropdownColor: Colors.white,
+                        dropdownColor: Colors.yellow,
                         onChanged: (value) {
                           setState(() {
                             _endTime = value!;
@@ -263,13 +264,13 @@ class _DayTimingsState extends State<DayTimings> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.yellow,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButton<String>(
                         value: _endLocation,
                         isExpanded: true,
-                        dropdownColor: Colors.white,
+                        dropdownColor: Colors.yellow,
                         onChanged: (value) {
                           setState(() {
                             _endLocation = value!;
@@ -306,7 +307,7 @@ class _DayTimingsState extends State<DayTimings> {
                   fontFamily: 'Poppins',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+                  color: Colors.yellow,
                 ),
               ),
             ),
@@ -322,13 +323,13 @@ class _DayTimingsState extends State<DayTimings> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.yellow,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButton<String>(
                         value: _role,
                         isExpanded: true,
-                        dropdownColor: Colors.white,
+                        dropdownColor: Colors.yellow,
                         onChanged: (value) {
                           setState(() {
                             _role = value!;
@@ -384,10 +385,11 @@ class _DayTimingsState extends State<DayTimings> {
               child: OutlinedButton(
                 onPressed: _setSchedule,
                 style: OutlinedButton.styleFrom(
-                  primary: Colors.black,
+                  backgroundColor: Colors.yellow,
+                  primary: Colors.yellow,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(
-                    color: Colors.black,
+                    color: Colors.yellow,
                     width: 1,
                   ),
                   shape: RoundedRectangleBorder(
@@ -395,11 +397,12 @@ class _DayTimingsState extends State<DayTimings> {
                   ),
                 ),
                 child: Text(
-                  'SET SCHEDULE',
+                  'SET DAY',
                   style: TextStyle(
+                    color: Colors.black,
                     fontFamily: 'Poppins',
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

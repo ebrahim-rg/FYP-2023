@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:fyp/daysettings_screen.dart';
-import 'package:fyp/editprofile_screen.dart';
+import 'package:Routify/daysettings_screen.dart';
+import 'package:Routify/editprofile_screen.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

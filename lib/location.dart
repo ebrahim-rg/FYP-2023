@@ -26,6 +26,7 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
@@ -49,6 +50,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 fontSize: 20,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w400,
+                color: Colors.yellow
               ),
             ),
             SizedBox(height: 30),

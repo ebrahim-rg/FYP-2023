@@ -69,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 labelText: 'Username',
-                labelStyle: TextStyle(color: Colors.yellow),
+                labelStyle: TextStyle(color: Colors.black),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.yellow),
                   borderRadius: BorderRadius.circular(8),
@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               decoration: InputDecoration(
                 hintText: "Enter new password",
                 labelText: 'New Password',
-                labelStyle: TextStyle(color: Colors.yellow),
+                labelStyle: TextStyle(color: Colors.black),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white),
                   borderRadius: BorderRadius.circular(8),

@@ -27,7 +27,7 @@ class _DayCircleState extends State<DayCircle> {
         width: 90.0,
         height: 90.0,
         decoration: BoxDecoration(
-          color: widget.isDay ? Colors.yellow : Colors.deepOrange,
+          color: widget.isDay ? Colors.yellow : Colors.yellow.withOpacity(0.35),
           shape: BoxShape.circle,
         ),
         child: Center(

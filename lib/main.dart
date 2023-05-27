@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fyp/allrides_screen.dart';
-import 'package:fyp/location.dart';
-import 'package:fyp/route_screen.dart';
+import 'package:Routify/allrides_screen.dart';
+import 'package:Routify/location.dart';
+import 'package:Routify/route_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen.dart';
@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'My App',
       home: FutureBuilder(
           future: Future.wait([_getAuthState(), _getUserId(), _getToken()]),

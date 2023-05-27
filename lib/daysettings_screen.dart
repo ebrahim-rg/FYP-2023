@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fyp/daytimings_screen.dart';
+import 'package:Routify/daytimings_screen.dart';
 
 class WeekScreen extends StatefulWidget {
   WeekScreen({required this.userid});
@@ -74,7 +74,7 @@ class _WeekScreenState extends State<WeekScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.black,
       appBar: AppBar(
         leading: InkWell(
           onTap: () {
@@ -82,7 +82,7 @@ class _WeekScreenState extends State<WeekScreen> {
           },
           child: Icon(Icons.arrow_back, color: Colors.white),
         ),
-        backgroundColor: Colors.blueGrey[900],
+        backgroundColor: Colors.black,
         title: Text(
           "Day Settings",
           style: TextStyle(
@@ -92,8 +92,8 @@ class _WeekScreenState extends State<WeekScreen> {
       body: Column(
         children: [
           Divider(
-            color: Colors.grey[400],
-            thickness: 1,
+            color: Colors.yellow,
+            thickness: 8,
           ),
           Expanded(
             child: ListView.builder(
@@ -143,7 +143,7 @@ class _WeekScreenState extends State<WeekScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
                         color: isToggled[index]
-                            ? color!.withOpacity(0.1)
+                            ? Colors.yellow
                             : Colors.white,
                         borderRadius: BorderRadius.circular(30),
                       ),

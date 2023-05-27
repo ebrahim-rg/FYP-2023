@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:fyp/daysettings_screen.dart';
-import 'package:fyp/widgets/textfield.dart';
+import 'package:Routify/daysettings_screen.dart';
+import 'package:Routify/widgets/textfield.dart';
 import 'package:http/http.dart';
 
 import 'home_screen.dart';
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController password = TextEditingController();
   bool validateUsername = true;
   bool validatePassword = true;
-  bool isFirstTime = true;
+  //bool isFirstTime = true;
   //final formKey = GlobalKey<FormState>();
 
   Future<void> updateAuthState(bool isSignedIn) async {
@@ -50,25 +50,25 @@ class _LoginPageState extends State<LoginPage> {
     prefs.setString('token', token);
   }
 
-  Future<void> updateisFirstTime(bool flag) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('isFirstTime', flag);
-  }
+  // Future<void> updateisFirstTime(bool flag) async {
+  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   prefs.setBool('isFirstTime', flag);
+  // }
 
-  void _checkIfFirstTime() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
-    setState(() {
-      this.isFirstTime = isFirstTime;
-    });
-  }
+  // void _checkIfFirstTime() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
+  //   setState(() {
+  //     this.isFirstTime = isFirstTime;
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
     email;
     password;
-    _checkIfFirstTime();
+    //_checkIfFirstTime();
   }
 
   @override
@@ -82,13 +82,17 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       isLoading = true;
     });
+    print("reaching code");
 
     try {
+      print(password);
+      print("hi");
       Response response =
           await post(Uri.parse('https://routify.cyclic.app/api/signin'), body: {
         "email": email,
         "password": password,
       });
+      print("yo");
       String msg = '';
       String userid = '';
       String token = '';
@@ -96,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
         Map<String, dynamic> data = jsonDecode(response.body);
         msg = data['message'];
         token = data['token'];
-        //print(token);
+        print(token);
         userid = data["userid"];
         print(token);
         print(userid);
@@ -300,6 +304,7 @@ class _LoginPageState extends State<LoginPage> {
                           isLoading: isLoading,
                           text: 'Sign In',
                           onTap: () {
+                            print("it is working");
                             if (!email.text.isEmpty && !password.text.isEmpty) {
                               _showResponse(email.text.toString(),
                                   password.text.toString());
