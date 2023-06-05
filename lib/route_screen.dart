@@ -35,7 +35,7 @@ class _MyMapScreenState extends State<MyMapScreen> {
 
   Future<Set<Polyline>> _getPolylines(String startLat, String startLng,
       String endLat, String endLng, List<Color> colors) async {
-    final apiKey = 'AIzaSyDvGu0s5AniaCriuxDEYyHA53KqUdNOSbI';
+    final apiKey = 'AIzaSyBQDYflt-5xGe16hLqWa9415WEtwMffnEk';
     final url = 'https://maps.googleapis.com/maps/api/directions/json'
         '?origin=$startLat,$startLng'
         '&destination=$endLat,$endLng'
